@@ -1,0 +1,24 @@
+package vndict
+
+import com.vnstreaming.DictEnVi;
+
+class ApiController {
+
+    def index() { 
+		render "x"
+	}
+	
+	def searchEV(){
+		def word = params.word;
+		if(!word){
+			render "wrong word"
+			return
+		}
+		def fWord = DictEnVi.findByWord(word);
+		if(fWord){
+			render fWord.meanings;
+			return
+		}
+		render "not found"
+	}
+}

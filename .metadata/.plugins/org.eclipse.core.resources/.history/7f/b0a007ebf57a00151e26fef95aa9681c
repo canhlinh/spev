@@ -1,0 +1,26 @@
+package vndict
+
+import org.codehaus.groovy.grails.web.binding.bindingsource.JsonDataBindingSourceCreator.JsonArrayList;
+
+import com.vnstreaming.DictEnVi;
+
+class ApiController {
+
+    def index() { 
+		render "x"
+	}
+	
+	def searchEV(){
+		def word = params.word;
+		if(!word){
+			render "wrong word"
+			return
+		}
+		def fWord = DictEnVi.findByWord(word);
+		if(fWord){
+			render fWord as JsonArrayList;
+			return
+		}
+		render "not found"
+	}
+}

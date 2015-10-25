@@ -1,0 +1,23 @@
+package vndict
+
+import com.vnstreaming.DictEnVi
+import grails.converters.JSON
+
+class ApiController {
+
+    def index() { 
+		render "x"
+	}
+	
+	def searchEV(){
+		def word = params.word;
+		if(word){
+		def fWord = DictEnVi.findByWord(word)
+		if(fWord){
+			render fWord as JSON
+			return
+		}
+		}
+		render "Word not found"
+	}
+}

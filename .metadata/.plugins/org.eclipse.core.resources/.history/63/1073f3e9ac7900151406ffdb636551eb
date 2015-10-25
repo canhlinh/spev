@@ -1,0 +1,4 @@
+dataSource.url="jdbc:mysql://localhost:3306/evdict?useUnicode=yes&characterEncoding=UTF-8"
+dataSource.username="root"
+dataSource.password="wBeBn1ayL13PqXd2euyh"
+dataSource.driverClassName="com.mysql.jdbc.Driver"

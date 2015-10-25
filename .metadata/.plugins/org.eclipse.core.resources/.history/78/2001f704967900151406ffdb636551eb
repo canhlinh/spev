@@ -1,0 +1,7 @@
+package vndict
+
+class Dict_en_vi {
+	String word
+    static constraints = {
+    }
+}

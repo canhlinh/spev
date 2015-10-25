@@ -1,0 +1,3 @@
+dataSource.url=jdbc:mysql://localhost/vndict?useUnicode=yes&characterEncoding=UTF-8&?autoReconnect=true
+dataSource.username=root
+dataSource.password=wBeBn1ayL13PqXd2euyh
