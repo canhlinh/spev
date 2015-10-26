@@ -1,3 +1,3 @@
 # vnstreaming
-Chrome extension english vietnam dictionary.
-Live stream from mobible.
+Chrome extension support english vietnam dictionary.
+Live stream website from mobile.
