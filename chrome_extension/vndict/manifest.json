@@ -11,6 +11,10 @@
     "128": "assets/icon_128.png"
   },
 	"background": {
-	  "scripts": ["background.js"]
-	}
+	  "scripts": ["background.js","constant.js"]
+	},
+	"content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["script-content.js","constant.js"]
+	}]
 }
