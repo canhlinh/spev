@@ -1,15 +1,26 @@
-/**
- * Listens for the app launching, then creates the window.
- *
- * @see http://developer.chrome.com/apps/app.runtime.html
- * @see http://developer.chrome.com/apps/app.window.html
- */
-chrome.app.runtime.onLaunched.addListener(function(launchData) {
-  chrome.app.window.create(
-    'index.html',
-    {
-      id: 'mainWindow',
-      bounds: {width: 800, height: 600}
-    }
-  );
-});
+chrome.runtime.onConnect.addListener(onPortConnected);
+chrome.runtime.onConnectExternal.addListener(onPortConnected);
+function onPortConnected(port){
+	self.contentScriptPort = port;
+	port.onDisconnect.addListener(function (){
+		self.contentScriptPort = null;
+		if (self.nativeHostPort){
+			self.onNMHostDisconnected("");
+		}
+	});
+	port.onMessage.addListener(function (message){
+		var functionToCall = self[message.command];
+		if (functionToCall === undefined || functionToCall === null){
+			self.errorToContentScript("Extension received unknown message: " + JSON.stringify(message));
+			return;
+		}
+		functionToCall(message);
+	});
+}
+
+this.messageToContentScript = function(cookie, name, data){
+	if (null === self.contentScriptPort){
+	  return;
+	}
+	self.contentScriptPort.postMessage({ 'cookie': cookie, 'command': name, 'data': data });
+};

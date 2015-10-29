@@ -10,10 +10,7 @@
     "16": "assets/icon_16.png",
     "128": "assets/icon_128.png"
   },
-
-  "app": {
-    "background": {
-      "scripts": ["background.js"]
-    }
-  }
+	"background": {
+	  "scripts": ["background.js"]
+	}
 }
