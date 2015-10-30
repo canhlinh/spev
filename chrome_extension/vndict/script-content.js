@@ -1,100 +1,126 @@
-function tryConnectExtension(){
-    extension.port = chrome.runtime.connect(extension.id);
-    if (extension.port === null){
-        extension.id = null;
-        extension.port = null;
-        return false;
+var MouseDblPoint = function (x,y) {
+  this.x = x;
+  this.y = y;
+};
+
+MouseDblPoint.prototype.setPoint = function(x,y){
+  this.x = x;
+  this.y = y;
+};
+
+MouseDblPoint.prototype.getMouseX = function(){
+  return (this.x - 60)+"px";
+};
+
+MouseDblPoint.prototype.getMouseY = function(){
+  return (this.y + 12) +"px";
+};
+
+if( typeof(ContentScript) === undefined) var ContentScript = {};
+
+ContentScript = {
+  Init: function(){
+    this.clickTimeout = 0;
+    this.extension = {};
+    this.word = null;
+    this.divId = "vsdict_div_extension";
+    this.mousePoint = new MouseDblPoint(0,0);
+    document.body.onclick = this.MouseClickHandler;
+    document.body.ondblclick = this.MouseDbclickHandler;
+    var e = chrome.extension.getURL("");
+    this.extension.id = /(\w{32})/.exec(e)[0];
+    var t = window.document.createElement("meta");
+    t.setAttribute("name", "vnstreamg-com-chrome-extension");
+    t.setAttribute("id", this.extension.id);
+    window.document.head.appendChild(t);
+    this.TryConnectExtension();
+  },
+  TryConnectExtension: function(){
+      this.extension.port = chrome.runtime.connect(this.extension.id);
+      if (this.extension.port === null){
+          this.extension.id = null;
+          this.extension.port = null;
+          return false;
+      }
+      console.log("connected to extension : "+this.extension.id);
+      this.extension.port.onMessage.addListener(this.ExtensionMessageHandler);
+      this.extension.port.onDisconnect.addListener(this.ExtensionDisconnectedHandler);
+      return true;
+  },
+  ExtensionMessageHandler: function(event){
+    console.log(event);
+    switch(event.name){
+      case CONNECTION_CHANGE:
+        //do something
+        break;
+      case WORD_TRANSLATED:
+        ContentScript.WordTranslatedHandler(event.data.result.meanings);
+        break;
     }
-    console.log("connected to extension : "+extension.id);
-    sendToExtension("message from content");
-    extension.port.onMessage.addListener(onExtensionMessage);
-    extension.port.onDisconnect.addListener(onExtensionDisconnected);
-    return true;
-}
-
-function onExtensionMessage(event){
-  console.log(event);
-  switch(event.name){
-    case CONNECTION_CHANGE:
-      if(event.data === "ready")
-        console.log("extension ready");
-      break;
-    case WORD_TRANSLATED:
-      wordTranslatedHandler();
-      break;
-  }
-}
-
-function wordTranslatedHandler(){
-  //Do something
-}
-
-function onExtensionDisconnected(){
-  console.log(event);
-  if(extension.id !== undefined)
-    setTimeout(tryConnectExtension, 3000);
-}
-
-function sendToExtension(message){
-    if (extension.port !== null){
-        extension.port.postMessage(message);
-    } else{
-        sendErrorToWebPage("Extension is not connected. Message cannot be sent.");
+  },
+  WordTranslatedHandler: function(result){
+    this.ShowDivTranslateUI(result);
+  },
+  ExtensionDisconnectedHandler: function(){
+    console.log(event);
+    if(this.extension.id !== undefined)
+      setTimeout(this.TryConnectExtension, 3000);
+  },
+  SendToExtension: function(message){
+      if (this.extension.port !== null){
+          this.extension.port.postMessage(message);
+      } else{
+          console.log("Extension is not connected. Message cannot be sent.");
+      }
+  },
+  MouseClickHandler: function(event){
+    if(ContentScript.clickTimeout === 0)
+      ContentScript.clickTimeout = setTimeout(ContentScript.ReleaseUI,250);
+  },
+  ReleaseUI: function(){
+    console.log("release UI");
+    var div = document.getElementById(ContentScript.divId);
+    if(div !== null)
+      document.body.removeChild(div);
+  },
+  MouseDbclickHandler: function(event){
+    ContentScript.ReleaseUI();
+    clearTimeout(ContentScript.clickTimeout);
+    ContentScript.clickTimeout = 0;
+    var lookupWord = ContentScript.GetSelectedText();
+    lookupWord = lookupWord.replace(/[\.\*\?;!()\+,\[:\]<>^_`\[\]{}~\\\/\"\'=]/g, " ");
+    lookupWord = lookupWord.replace(/\s+/g, " ");
+    if (lookupWord !== null) {
+      console.log(lookupWord);
+      ContentScript.mousePoint.setPoint(event.pageX , event.pageY);
+      var message = {};
+      message.name = TRANSLATE_WORD;
+      message.data = lookupWord;
+      ContentScript.SendToExtension(message);
     }
-}
-
-function initContentScript(){
-  document.body.onclick = mouseClickHandler;
-  document.body.ondblclick = mouseDbclickHandler;
-  tryConnectExtension();
-}
-
-function mouseClickHandler(){
-  if(clickTimeout === 0)
-    clickTimeout = setTimeout(releaseUI,250);
-}
-
-function releaseUI(){
-  console.log("releaseUI");
-}
-
-function mouseDbclickHandler(){
-  console.log("mouseDbclickHandler");
-  clearTimeout(clickTimeout);
-  clickTimeout = 0;
-  var lookupWord = getSelectedText();
-  lookupWord = lookupWord.replace(/[\.\*\?;!()\+,\[:\]<>^_`\[\]{}~\\\/\"\'=]/g, " ");
-  lookupWord = lookupWord.replace(/\s+/g, " ");
-  if (lookupWord !== null) {
-    console.log(lookupWord);
-    var message = {};
-    message.name = TRANSLATE_WORD;
-    message.data = lookupWord;
-    sendToExtension(message);
+  },
+  GetSelectedText: function(){
+      if(window.getSelection)
+          return window.getSelection().toString();
+      else if(document.getSelection)
+          return document.getSelection();
+      else if(document.selection)
+          return document.selection.createRange().text;
+      return "";
+  },
+  ShowDivTranslateUI: function(tWord){
+    var div = document.createElement("div");
+    div.id = this.divId;
+    div.className = "vsdict_div";
+    div.style.top = this.mousePoint.getMouseY();
+    div.style.left = this.mousePoint.getMouseX();
+    div.innerHTML = tWord;
+    document.body.appendChild(div);
   }
-}
-
-function getSelectedText(){
-    if(window.getSelection)
-        return window.getSelection().toString();
-    else if(document.getSelection)
-        return document.getSelection();
-    else if(document.selection)
-        return document.selection.createRange().text;
-    return "";
-}
-
-var clickTimeout = 0;
-var extension = {};
+};
 
 if(!document.head.querySelector("meta[name=vnstreamg-com-chrome-extension]")){
   if (chrome.extension) {
-    var e = chrome.extension.getURL("");
-    extension.id = /(\w{32})/.exec(e)[0];
-    var t = window.document.createElement("meta");
-    t.setAttribute("name", "eMx-chrome-extension");
-    t.setAttribute("id", extension.id);
-    window.document.head.appendChild(t);
-    initContentScript();
+    ContentScript.Init();
   }
 }
