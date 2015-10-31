@@ -1,5 +1,5 @@
 .vsdict_div {
-  max-width: 120px;
+/*  max-width: 120px;*/
   font-size: 14px;
   z-index: 2147483647;
   color: rgb(15, 33, 73);
@@ -14,7 +14,7 @@
   border-image-outset: initial;
   border-image-repeat: initial;
   outline: 0px;
-  line-height: 1.5em;
+  line-height: 0.5em;
   text-decoration: none;
   vertical-align: baseline;
   text-align: left;

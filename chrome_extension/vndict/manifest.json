@@ -1,21 +1,32 @@
 {
   "manifest_version": 2,
-  "name": "vndict",
-  "short_name": "vndict",
+  "name": "Vsdict",
+  "short_name": "Vsdict",
   "description": "",
   "version": "0.0.1",
   "minimum_chrome_version": "38",
 
   "icons": {
     "16": "assets/icon_16.png",
-    "128": "assets/icon_128.png"
+    "32": "assets/icon_32.png",
+    "48": "assets/icon_48.png"
+  },
+  "browser_action": {
+    "default_icon": "assets/icon_32.png",
+    "default_popup": "option.html"
   },
 	"background": {
-	  "scripts": ["background.js","constant.js"]
+	  "scripts": [
+	    "constant.js",
+	    "background.js"
+    ]
 	},
 	"content_scripts": [{
     "matches": ["<all_urls>"],
-    "js": ["script-content.js","constant.js"],
+    "js": [
+      "constant.js",
+      "script-content.js"
+      ],
     "css": ["styles.css"]
 	}]
 }

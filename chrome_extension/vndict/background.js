@@ -1,7 +1,6 @@
 function EnViExtension(){
-  var contentScriptPort = {};
   var self = this;
-  self.contentScriptPort = contentScriptPort;
+  self.contentScriptPort = null;
   
   this.PortConnectedHandler = function(port){
   	self.contentScriptPort = port;
@@ -9,7 +8,10 @@ function EnViExtension(){
   		self.contentScriptPort = null;
   	});
   	port.onMessage.addListener(self.MessageContentHandler);
-    self.SendMessageToContent("Message from extension : Hey boss, i'm ready");
+    var message = {};
+    message.name = CONNECTION_CHANGE;
+    message.data = "Hey boss, TS ready";
+    self.SendMessageToContent(message);
   };
   
   this.SendMessageToContent = function(message){
