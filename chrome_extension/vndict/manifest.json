@@ -17,20 +17,19 @@
   },
 	"background": {
 	  "scripts": [
-	    "constant.js",
-	    "background.js"
+	    "js/constant.js",
+	    "js/background.js"
     ]
 	},
 	"content_scripts": [{
     "matches": ["<all_urls>"],
     "js": [
-      "constant.js",
-      "script-content.js"
+      "js/constant.js",
+      "js/script-content.js"
       ],
-    "css": ["styles.css"]
+    "css": ["css/content-styles.css"]
 	}],
   "chrome_url_overrides" : {
-    "newtab": "flat.html"
-  },
-  "content_security_policy": "script-src 'self' https://apis.google.com; object-src 'self'"
+    "newtab": "note.html"
+  }
 }
