@@ -52,8 +52,8 @@ function EnViExtension(){
           }
         }
     }; 
-    xhr.open("GET", "http://vnstreaming.com/vndict/api/searchEV?word="+word);
-    xhr.send();
+    xhr.open("POST", "http://vnstreaming.com/vndict/api/searchEV");
+    xhr.send("word="+word);
   };
   
   chrome.runtime.onConnect.addListener(this.PortConnectedHandler);
