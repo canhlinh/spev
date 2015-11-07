@@ -1,1 +1,44 @@
 # google api example
+
+https://translate.google.com/translate_a/single?client=webapp&sl=en&tl=vi&hl=vi&dj=1&ie=UTF-8&oe=UTF-8&q=use%20&dt=bd&dt=ld&dt=qc&dt=rm&dt=t
+
+{
+	"sentences":[{"trans":"dùng","orig":"use","backend":1}],
+	"dict":
+	[
+		{
+			"pos":"động từ","terms":["dùng","dùng vật gì"],
+			"entry":[
+				{
+					"word":"dùng",
+					"reverse_translation":
+					[
+						"use","consume","employ","wear","handle","manipulate"
+					]},
+				{
+					"word":"dùng vật gì",
+					"reverse_translation":["use"]
+				}
+			],
+			"base_form":"use","pos_enum":2
+		},
+		{
+			"pos":"danh từ","terms":["cách dùng","hưởng dụng","hữu ích","lợi ích","quyền hưởng","sự có ích","sự dùng"],
+			"entry":
+			[
+				{"word":"cách dùng","reverse_translation":["use"]},
+				{"word":"hưởng dụng","reverse_translation":["use"]},
+				{"word":"hữu ích","reverse_translation":["utility","use"]},
+				{"word":"lợi ích","reverse_translation":["benefit","gain","profit","utility","use","behoof"]},
+				{"word":"quyền hưởng","reverse_translation":["use"]},
+				{"word":"sự có ích","reverse_translation":["avail","use"]},
+				{"word":"sự dùng",
+					"reverse_translation":
+					["use","handling","utilization","employment","expenditure","manipulation"]
+				}
+			],
+			"base_form":"use","pos_enum":1
+		}
+	],
+	"src":"en","confidence":1,"ld_result":{"srclangs":["en"],"srclangs_confidences":[1]}
+}
