@@ -1,2 +1,5 @@
 
-Từ điển anh việt ngay trên Chrome. Note giúp bạn nhớ từ điển mỗi ngày.
+Từ điển anh việt ngay trên Chrome. Note giúp bạn nhớ từ điển mỗi ngày.  
+Chrome Extension dictionary. Flashcard note in newtab page.
+
+[Feature approad](https://github.com/canhlinh/spev/wiki)
