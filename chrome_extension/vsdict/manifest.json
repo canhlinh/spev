@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "VS dictionary",
-  "short_name": "vsd",
+  "name": "vsdict",
+  "short_name": "vsdict",
   "description": "",
   "version": "0.0.1",
   "minimum_chrome_version": "38",
