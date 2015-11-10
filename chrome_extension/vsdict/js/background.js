@@ -53,6 +53,7 @@ function EnViExtension(){
         }
     }; 
     xhr.open("POST", "http://vnstreaming.com/vndict/api/searchEV");
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.send("word="+word);
   };
   
