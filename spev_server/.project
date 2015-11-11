@@ -26,7 +26,7 @@
 		<link>
 			<name>.link_to_grails_plugins</name>
 			<type>2</type>
-			<location>/home/linhnc/vnstreaming/src/vndict/target/work/plugins</location>
+			<location>/home/linhnc/vnstreaming/spev/spev_server/target/work/plugins</location>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -26,7 +26,7 @@ function EnViExtension(){
     var mName = event.name;
     switch(mName){
       case TRANSLATE_WORD:
-        self.GetWordFromServer(event.data, self.ResponseWordTranslateHandler);
+        self.GetWordFromVnStreaming(event.data);
         break;
     }
   };
@@ -40,7 +40,7 @@ function EnViExtension(){
     this.SendMessageToContent(message);
   };
   
-  this.GetWordFromServer = function(word){
+  this.GetWordFromVnStreaming = function(word){
     var xhr = new XMLHttpRequest();
     xhr.responseType = "json";
     xhr.onreadystatechange = function()
@@ -49,12 +49,32 @@ function EnViExtension(){
         {
           if(xhr.response !== null){
             self.ResponseWordTranslateHandler(word, xhr.response.result);
+          }else {
+            self.GetWordFromGoogle(word);
           }
         }
     }; 
-    xhr.open("POST", "http://vnstreaming.com/vndict/api/searchEV");
+    xhr.open("POST", VNSTREAM_API);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.send("word="+word);
+  };
+  
+  this.GetWordFromGoogle = function(word){
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = "json";
+    xhr.onreadystatechange = function()
+    {
+        if (xhr.readyState == 4 && xhr.status == 200)
+        {
+          if(xhr.response !== null){
+            var result = xhr.response.sentences[0].trans;
+            self.ResponseWordTranslateHandler(word, result);
+          }
+        }
+    }; 
+    xhr.open("GET", GOOGLE_API+encodeURI(word));
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send();
   };
   
   chrome.runtime.onConnect.addListener(this.PortConnectedHandler);
