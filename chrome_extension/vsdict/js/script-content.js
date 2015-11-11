@@ -128,7 +128,7 @@ ContentScript = {
   GetDivFromResult: function(phonetic, meanings){
     
     var arrayOfStrings = meanings.split("\n");
-    var div = this.CreatePtag("phiên âm - "+phonetic,0);
+    var div = this.CreatePtag("phiên âm - /"+phonetic+"/",0);
     for(var i = 0; i < arrayOfStrings.length; i++){
       var pText = arrayOfStrings[i];
       var fChar = pText.charAt(0);
@@ -142,7 +142,7 @@ ContentScript = {
           break;
         case "=":
           pText = pText.replace("=","vd: ");
-          div +=  this.CreatePtag(pText,20);
+          //div +=  this.CreatePtag(pText,20);
           break;
       }
     }
