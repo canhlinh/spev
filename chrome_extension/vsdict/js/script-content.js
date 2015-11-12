@@ -133,7 +133,7 @@ ContentScript = {
       return this.CreatePtag(meanings);
     }
     var arrayOfStrings = meanings.split("\n");
-    var div = this.CreatePtag("phiên âm - /"+phonetic+"/",0);
+    var div = this.CreatePtag("/"+phonetic+"/",0);
     for(var i = 0; i < arrayOfStrings.length; i++){
       var pText = arrayOfStrings[i];
       var fChar = pText.charAt(0);
@@ -154,10 +154,10 @@ ContentScript = {
     return div;
   },
   CreatePtag: function(value, px){
-    return "<p style='margin-left: "+px+"px;margin-bottom: 0;'>"+value+"</p>";
+    return "<p style='margin-left: "+ px + "px;margin-bottom: 0px;margin-top: 0px;'>"+value+"</p>";
   },
   CreateBPtag: function(value){
-    return "<p style='font-weight: bold;margin-bottom: 0;'>"+value+"</p>";
+    return "<p style='font-weight: bold;margin-bottom: 0px;margin-top: 0px;'>"+value+"</p>";
   }
 };
 
