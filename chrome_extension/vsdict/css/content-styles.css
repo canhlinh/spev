@@ -14,12 +14,11 @@
   border-image-outset: initial;
   border-image-repeat: initial;
   outline: 0px;
-  line-height: 0.5em;
+  line-height: normal;
   text-decoration: none;
   vertical-align: baseline;
   text-align: left;
   padding: 5px;
   margin: 0px;
   box-shadow: rgb(0, 0, 0) 0px 0px 20px;
-  min-width: 90px;
 }

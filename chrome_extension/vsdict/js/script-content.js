@@ -64,12 +64,12 @@ ContentScript = {
         console.log(event.data);
         break;
       case WORD_TRANSLATED:
-        ContentScript.WordTranslatedHandler(event.data.result.phonetic, event.data.result.meanings);
+        ContentScript.WordTranslatedHandler(event.data.result);
         break;
     }
   },
-  WordTranslatedHandler: function(phonetic, meanings){
-    var dContent = this.GetDivFromResult(phonetic, meanings);
+  WordTranslatedHandler: function(result){
+    var dContent = this.GetDivFromResult(result);
     this.ShowDivTranslateUI(dContent);
   },
   ExtensionDisconnectedHandler: function(){
@@ -125,8 +125,13 @@ ContentScript = {
     div.innerHTML = dContent;
     document.body.appendChild(div);
   },
-  GetDivFromResult: function(phonetic, meanings){
-    
+  GetDivFromResult: function(result){
+    var type = result.type;
+    var phonetic = result.phonetic;
+    var meanings = result.meanings;
+    if(type == GAPI) {
+      return this.CreatePtag(meanings);
+    }
     var arrayOfStrings = meanings.split("\n");
     var div = this.CreatePtag("phiên âm - /"+phonetic+"/",0);
     for(var i = 0; i < arrayOfStrings.length; i++){
@@ -138,7 +143,7 @@ ContentScript = {
           div +=  this.CreateBPtag(pText);
           break;
         case "-":
-          div +=  this.CreatePtag(pText,10);
+          div +=  this.CreatePtag(pText,1);
           break;
         case "=":
           pText = pText.replace("=","vd: ");
@@ -149,10 +154,10 @@ ContentScript = {
     return div;
   },
   CreatePtag: function(value, px){
-    return "<p style='margin-left: "+px+"px'>"+value+"</p>";
+    return "<p style='margin-left: "+px+"px;margin-bottom: 0;'>"+value+"</p>";
   },
   CreateBPtag: function(value){
-    return "<p style='font-weight: bold;'>"+value+"</p>";
+    return "<p style='font-weight: bold;margin-bottom: 0;'>"+value+"</p>";
   }
 };
 
