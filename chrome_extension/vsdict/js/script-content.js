@@ -76,11 +76,11 @@ ContentScript = {
     console.log("disconnected");
   },
   SendToExtension: function(message){
-      if (this.extension.port !== null){
-          this.extension.port.postMessage(message);
-      } else{
-          console.log("Extension is not connected. Message cannot be sent.");
-      }
+    if (this.extension.port !== null){
+        this.extension.port.postMessage(message);
+    } else{
+        console.log("Extension is not connected. Message cannot be sent.");
+    }
   },
   MouseClickHandler: function(event){
     if(ContentScript.clickTimeout === 0)
@@ -108,13 +108,13 @@ ContentScript = {
     }
   },
   GetSelectedText: function(){
-      if(window.getSelection)
-          return window.getSelection().toString();
-      else if(document.getSelection)
-          return document.getSelection();
-      else if(document.selection)
-          return document.selection.createRange().text;
-      return "";
+    if(window.getSelection)
+        return window.getSelection().toString();
+    else if(document.getSelection)
+        return document.getSelection();
+    else if(document.selection)
+        return document.selection.createRange().text;
+    return "";
   },
   ShowDivTranslateUI: function(dContent){
     var div = document.createElement("div");
@@ -122,6 +122,7 @@ ContentScript = {
     div.className = DIV_RS_CSS;
     div.style.top = this.mousePoint.getMouseY();
     div.style.left = this.mousePoint.getMouseX();
+	  div.style.position = "absolute";
     div.innerHTML = dContent;
     document.body.appendChild(div);
   },
