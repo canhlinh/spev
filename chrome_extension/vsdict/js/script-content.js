@@ -21,11 +21,15 @@ if( typeof(ContentScript) === undefined) var ContentScript = {};
 ContentScript = {
   Init: function(){
     this.clickTimeout = 0;
+    this.mousedownTime = 0;
+    this.mouseupTime = 0;
     this.extension = {};
     this.word = null;
     this.mousePoint = new MouseDblPoint(0,0);
-    document.body.onclick = this.MouseClickHandler;
-    document.body.ondblclick = this.MouseDbclickHandler;
+    document.body.onclick = this.MouseClickHandler.bind(this);
+    document.body.ondblclick = this.MouseDbclickHandler.bind(this);
+    document.body.onmouseup = this.MouseUpHandler.bind(this);
+    document.body.onmousedown = this.MouseDownHandler.bind(this);
     window.onfocus = this.PageActiveEventHandler;
     window.onblur = this.PageDeactiveEventHandler;
     var e = chrome.extension.getURL("");
@@ -82,9 +86,19 @@ ContentScript = {
         console.log("Extension is not connected. Message cannot be sent.");
     }
   },
+  MouseUpHandler: function(event) {
+    this.mouseupTime = new Date().getTime();
+    if(this.mouseupTime - this.mousedownTime > 1000) {
+      this.DetectTranslateContent(event);
+    }
+    event.preventDefault();
+  },
+  MouseDownHandler: function(event) {
+    this.mousedownTime = new Date().getTime();
+  },
   MouseClickHandler: function(event){
-    if(ContentScript.clickTimeout === 0)
-      ContentScript.clickTimeout = setTimeout(ContentScript.ReleaseUI,200);
+    if(this.clickTimeout === 0 && (this.mouseupTime - this.mousedownTime < 1000))
+      this.clickTimeout = setTimeout(this.ReleaseUI.bind(this), 200);
   },
   ReleaseUI: function(){
     var div = document.getElementById(DIV_RS_UI);
@@ -92,19 +106,22 @@ ContentScript = {
       document.body.removeChild(div);
   },
   MouseDbclickHandler: function(event){
-    ContentScript.ReleaseUI();
-    clearTimeout(ContentScript.clickTimeout);
-    ContentScript.clickTimeout = 0;
-    var lookupWord = ContentScript.GetSelectedText();
+    this.DetectTranslateContent(event);
+  },
+  DetectTranslateContent: function(event) {
+    this.ReleaseUI();
+    clearTimeout(this.clickTimeout);
+    this.clickTimeout = 0;
+    var lookupWord = this.GetSelectedText();
     lookupWord = lookupWord.replace(/[\.\*\?;!()\+,\[:\]<>^_`\[\]{}~\\\/\"\'=]/g, " ");
     lookupWord = lookupWord.replace(/\s+/g, " ");
     if (lookupWord !== null) {
       //console.log(lookupWord);
-      ContentScript.mousePoint.setPoint(event.pageX , event.pageY);
+      this.mousePoint.setPoint(event.pageX , event.pageY);
       var message = {};
       message.name = TRANSLATE_WORD;
       message.data = lookupWord;
-      ContentScript.SendToExtension(message);
+      this.SendToExtension(message);
     }
   },
   GetSelectedText: function(){
