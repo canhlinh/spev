@@ -9,11 +9,11 @@ MouseDblPoint.prototype.setPoint = function(x,y){
 };
 
 MouseDblPoint.prototype.getMouseX = function(){
-  return (this.x - 60)+"px";
+  return this.x;
 };
 
 MouseDblPoint.prototype.getMouseY = function(){
-  return (this.y + 12) +"px";
+  return (this.y + 12);
 };
 
 if( typeof(ContentScript) === undefined) var ContentScript = {};
@@ -26,10 +26,11 @@ ContentScript = {
     this.extension = {};
     this.word = null;
     this.mousePoint = new MouseDblPoint(0,0);
-    document.body.onclick = this.MouseClickHandler.bind(this);
+    //document.body.onclick = this.MouseClickHandler.bind(this);
     document.body.ondblclick = this.MouseDbclickHandler.bind(this);
     document.body.onmouseup = this.MouseUpHandler.bind(this);
     document.body.onmousedown = this.MouseDownHandler.bind(this);
+    document.body.onmousewheel = this.MouseDownHandler.bind(this);
     window.onfocus = this.PageActiveEventHandler;
     window.onblur = this.PageDeactiveEventHandler;
     var e = chrome.extension.getURL("");
@@ -38,7 +39,17 @@ ContentScript = {
     t.setAttribute("name", HEADER_META);
     t.setAttribute("id", this.extension.id);
     window.document.head.appendChild(t);
+    this.div = document.createElement("div");
+    this.div.id = DIV_RS_UI;
+    this.div.className = DIV_RS_CSS;
+    this.div.addEventListener("DOMNodeInserted", this.DivloadedHandler.bind(this));
     this.TryConnectExtension();
+  },
+  DivloadedHandler: function(event) {
+    var w = this.div.offsetWidth;
+    if(w !== 0) {
+      this.div.style.left = (this.mousePoint.getMouseX() - (w/2)) + "px";
+    }
   },
   PageActiveEventHandler: function(){
     if(ContentScript.extension.port === null)
@@ -88,19 +99,30 @@ ContentScript = {
   },
   MouseUpHandler: function(event) {
     this.mouseupTime = new Date().getTime();
-    if(this.mouseupTime - this.mousedownTime > 1000) {
+    if(this.mouseupTime - this.mousedownTime > 500) {
       this.DetectTranslateContent(event);
     }
     event.preventDefault();
   },
   MouseDownHandler: function(event) {
+    this.ReleaseUI();
     this.mousedownTime = new Date().getTime();
   },
-  MouseClickHandler: function(event){
+  MouseClickHandler: function(event) {
+    //@FIXME: I'm checking click event
     if(this.clickTimeout === 0 && (this.mouseupTime - this.mousedownTime < 1000))
       this.clickTimeout = setTimeout(this.ReleaseUI.bind(this), 200);
   },
-  ReleaseUI: function(){
+  ReleaseUI: function() {
+    if (window.getSelection) {
+    if (window.getSelection().empty) {  // Chrome
+      window.getSelection().empty();
+    } else if (window.getSelection().removeAllRanges) {  // Firefox
+      window.getSelection().removeAllRanges();
+    }
+    } else if (document.selection) {  // IE?
+      document.selection.empty();
+    }
     var div = document.getElementById(DIV_RS_UI);
     if(div !== null)
       document.body.removeChild(div);
@@ -109,15 +131,13 @@ ContentScript = {
     this.DetectTranslateContent(event);
   },
   DetectTranslateContent: function(event) {
-    this.ReleaseUI();
     clearTimeout(this.clickTimeout);
     this.clickTimeout = 0;
     var lookupWord = this.GetSelectedText();
     lookupWord = lookupWord.replace(/[\.\*\?;!()\+,\[:\]<>^_`\[\]{}~\\\/\"\'=]/g, " ");
     lookupWord = lookupWord.replace(/\s+/g, " ");
-    if (lookupWord !== null) {
-      //console.log(lookupWord);
-      this.mousePoint.setPoint(event.pageX , event.pageY);
+    if (lookupWord !== null && lookupWord !== " " && lookupWord !== "") {
+      this.mousePoint.setPoint(event.clientX , event.clientY);
       var message = {};
       message.name = TRANSLATE_WORD;
       message.data = lookupWord;
@@ -134,14 +154,10 @@ ContentScript = {
     return "";
   },
   ShowDivTranslateUI: function(dContent){
-    var div = document.createElement("div");
-    div.id = DIV_RS_UI;
-    div.className = DIV_RS_CSS;
-    div.style.top = this.mousePoint.getMouseY();
-    div.style.left = this.mousePoint.getMouseX();
-	  div.style.position = "absolute";
-    div.innerHTML = dContent;
-    document.body.appendChild(div);
+    this.div.style.top = this.mousePoint.getMouseY() + "px";
+    this.div.style.left = this.mousePoint.getMouseX() + "px";
+    this.div.innerHTML = dContent;
+    document.body.appendChild(this.div);
   },
   GetDivFromResult: function(result){
     var type = result.type;
@@ -165,7 +181,7 @@ ContentScript = {
           break;
         case "=":
           pText = pText.replace("=","vd: ");
-          //div +=  this.CreatePtag(pText,20);
+          // Not used
           break;
       }
     }
