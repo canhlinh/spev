@@ -48,7 +48,10 @@ function EnViExtension(){
         if (xhr.readyState == 4 && xhr.status == 200)
         {
           if(xhr.response !== null){
-            self.ResponseWordTranslateHandler(word, xhr.response.result);
+            var result = {};
+            result = xhr.response.result;
+            result.type = VSAPI;
+            self.ResponseWordTranslateHandler(word, result);
           }else {
             self.GetWordFromGoogle(word);
           }
@@ -61,19 +64,23 @@ function EnViExtension(){
   
   this.GetWordFromGoogle = function(word){
     var xhr = new XMLHttpRequest();
-    xhr.responseType = "json";
+    xhr.responseType = "text";
     xhr.onreadystatechange = function()
     {
         if (xhr.readyState == 4 && xhr.status == 200)
         {
-          if(xhr.response !== null){
-            var result = xhr.response.sentences[0].trans;
+          if(xhr.responseText !== null){
+            var respone = xhr.responseText;
+            var json = respone.split('"');
+            var result = {};
+            result.meanings = json[1];
+            result.phonetic = "";
+            result.type = GAPI;
             self.ResponseWordTranslateHandler(word, result);
           }
         }
     }; 
     xhr.open("GET", GOOGLE_API+encodeURI(word));
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.send();
   };
   

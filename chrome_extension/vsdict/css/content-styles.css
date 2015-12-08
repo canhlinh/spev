@@ -6,7 +6,7 @@
   border-radius: 5px;
   opacity: 0.97;
   background-color: rgb(255, 255, 255);
-  position: absolute;
+  position: fixed;
   border: 0px;
   border-image-source: initial;
   border-image-slice: initial;
@@ -14,7 +14,7 @@
   border-image-outset: initial;
   border-image-repeat: initial;
   outline: 0px;
-  line-height: 0.5em;
+  line-height: normal;
   text-decoration: none;
   vertical-align: baseline;
   text-align: left;
@@ -22,4 +22,5 @@
   margin: 0px;
   box-shadow: rgb(0, 0, 0) 0px 0px 20px;
   min-width: 90px;
+  max-width: 200px;
 }

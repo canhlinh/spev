@@ -9,11 +9,11 @@ MouseDblPoint.prototype.setPoint = function(x,y){
 };
 
 MouseDblPoint.prototype.getMouseX = function(){
-  return (this.x - 60)+"px";
+  return this.x;
 };
 
 MouseDblPoint.prototype.getMouseY = function(){
-  return (this.y + 12) +"px";
+  return (this.y + 12);
 };
 
 if( typeof(ContentScript) === undefined) var ContentScript = {};
@@ -21,11 +21,16 @@ if( typeof(ContentScript) === undefined) var ContentScript = {};
 ContentScript = {
   Init: function(){
     this.clickTimeout = 0;
+    this.mousedownTime = 0;
+    this.mouseupTime = 0;
     this.extension = {};
     this.word = null;
     this.mousePoint = new MouseDblPoint(0,0);
-    document.body.onclick = this.MouseClickHandler;
-    document.body.ondblclick = this.MouseDbclickHandler;
+    //document.body.onclick = this.MouseClickHandler.bind(this);
+    document.body.ondblclick = this.MouseDbclickHandler.bind(this);
+    document.body.onmouseup = this.MouseUpHandler.bind(this);
+    document.body.onmousedown = this.MouseDownHandler.bind(this);
+    document.body.onmousewheel = this.MouseDownHandler.bind(this);
     window.onfocus = this.PageActiveEventHandler;
     window.onblur = this.PageDeactiveEventHandler;
     var e = chrome.extension.getURL("");
@@ -34,7 +39,17 @@ ContentScript = {
     t.setAttribute("name", HEADER_META);
     t.setAttribute("id", this.extension.id);
     window.document.head.appendChild(t);
+    this.div = document.createElement("div");
+    this.div.id = DIV_RS_UI;
+    this.div.className = DIV_RS_CSS;
+    this.div.addEventListener("DOMNodeInserted", this.DivloadedHandler.bind(this));
     this.TryConnectExtension();
+  },
+  DivloadedHandler: function(event) {
+    var w = this.div.offsetWidth;
+    if(w !== 0) {
+      this.div.style.left = (this.mousePoint.getMouseX() - (w/2)) + "px";
+    }
   },
   PageActiveEventHandler: function(){
     if(ContentScript.extension.port === null)
@@ -64,71 +79,95 @@ ContentScript = {
         console.log(event.data);
         break;
       case WORD_TRANSLATED:
-        ContentScript.WordTranslatedHandler(event.data.result.phonetic, event.data.result.meanings);
+        ContentScript.WordTranslatedHandler(event.data.result);
         break;
     }
   },
-  WordTranslatedHandler: function(phonetic, meanings){
-    var dContent = this.GetDivFromResult(phonetic, meanings);
+  WordTranslatedHandler: function(result){
+    var dContent = this.GetDivFromResult(result);
     this.ShowDivTranslateUI(dContent);
   },
   ExtensionDisconnectedHandler: function(){
     console.log("disconnected");
   },
   SendToExtension: function(message){
-      if (this.extension.port !== null){
-          this.extension.port.postMessage(message);
-      } else{
-          console.log("Extension is not connected. Message cannot be sent.");
-      }
+    if (this.extension.port !== null){
+        this.extension.port.postMessage(message);
+    } else{
+        console.log("Extension is not connected. Message cannot be sent.");
+    }
   },
-  MouseClickHandler: function(event){
-    if(ContentScript.clickTimeout === 0)
-      ContentScript.clickTimeout = setTimeout(ContentScript.ReleaseUI,200);
+  MouseUpHandler: function(event) {
+    this.mouseupTime = new Date().getTime();
+    if(this.mouseupTime - this.mousedownTime > 500) {
+      this.DetectTranslateContent(event);
+    }
+    event.preventDefault();
   },
-  ReleaseUI: function(){
+  MouseDownHandler: function(event) {
+    this.ReleaseUI();
+    this.mousedownTime = new Date().getTime();
+  },
+  MouseClickHandler: function(event) {
+    //@FIXME: I'm checking click event
+    if(this.clickTimeout === 0 && (this.mouseupTime - this.mousedownTime < 1000))
+      this.clickTimeout = setTimeout(this.ReleaseUI.bind(this), 200);
+  },
+  ReleaseUI: function() {
+    if (window.getSelection) {
+    if (window.getSelection().empty) {  // Chrome
+      window.getSelection().empty();
+    } else if (window.getSelection().removeAllRanges) {  // Firefox
+      window.getSelection().removeAllRanges();
+    }
+    } else if (document.selection) {  // IE?
+      document.selection.empty();
+    }
     var div = document.getElementById(DIV_RS_UI);
     if(div !== null)
       document.body.removeChild(div);
   },
   MouseDbclickHandler: function(event){
-    ContentScript.ReleaseUI();
-    clearTimeout(ContentScript.clickTimeout);
-    ContentScript.clickTimeout = 0;
-    var lookupWord = ContentScript.GetSelectedText();
+    this.DetectTranslateContent(event);
+  },
+  DetectTranslateContent: function(event) {
+    clearTimeout(this.clickTimeout);
+    this.clickTimeout = 0;
+    var lookupWord = this.GetSelectedText();
     lookupWord = lookupWord.replace(/[\.\*\?;!()\+,\[:\]<>^_`\[\]{}~\\\/\"\'=]/g, " ");
     lookupWord = lookupWord.replace(/\s+/g, " ");
-    if (lookupWord !== null) {
-      //console.log(lookupWord);
-      ContentScript.mousePoint.setPoint(event.pageX , event.pageY);
+    if (lookupWord !== null && lookupWord !== " " && lookupWord !== "") {
+      this.mousePoint.setPoint(event.clientX , event.clientY);
       var message = {};
       message.name = TRANSLATE_WORD;
       message.data = lookupWord;
-      ContentScript.SendToExtension(message);
+      this.SendToExtension(message);
     }
   },
   GetSelectedText: function(){
-      if(window.getSelection)
-          return window.getSelection().toString();
-      else if(document.getSelection)
-          return document.getSelection();
-      else if(document.selection)
-          return document.selection.createRange().text;
-      return "";
+    if(window.getSelection)
+        return window.getSelection().toString();
+    else if(document.getSelection)
+        return document.getSelection();
+    else if(document.selection)
+        return document.selection.createRange().text;
+    return "";
   },
   ShowDivTranslateUI: function(dContent){
-    var div = document.createElement("div");
-    div.id = DIV_RS_UI;
-    div.className = DIV_RS_CSS;
-    div.style.top = this.mousePoint.getMouseY();
-    div.style.left = this.mousePoint.getMouseX();
-    div.innerHTML = dContent;
-    document.body.appendChild(div);
+    this.div.style.top = this.mousePoint.getMouseY() + "px";
+    this.div.style.left = this.mousePoint.getMouseX() + "px";
+    this.div.innerHTML = dContent;
+    document.body.appendChild(this.div);
   },
-  GetDivFromResult: function(phonetic, meanings){
-    
+  GetDivFromResult: function(result){
+    var type = result.type;
+    var phonetic = result.phonetic;
+    var meanings = result.meanings;
+    if(type == GAPI) {
+      return this.CreatePtag(meanings);
+    }
     var arrayOfStrings = meanings.split("\n");
-    var div = this.CreatePtag("phiên âm - /"+phonetic+"/",0);
+    var div = this.CreatePtag("/"+phonetic+"/",0);
     for(var i = 0; i < arrayOfStrings.length; i++){
       var pText = arrayOfStrings[i];
       var fChar = pText.charAt(0);
@@ -138,21 +177,21 @@ ContentScript = {
           div +=  this.CreateBPtag(pText);
           break;
         case "-":
-          div +=  this.CreatePtag(pText,10);
+          div +=  this.CreatePtag(pText,1);
           break;
         case "=":
           pText = pText.replace("=","vd: ");
-          //div +=  this.CreatePtag(pText,20);
+          // Not used
           break;
       }
     }
     return div;
   },
   CreatePtag: function(value, px){
-    return "<p style='margin-left: "+px+"px'>"+value+"</p>";
+    return "<p style='margin-left: "+ px + "px;margin-bottom: 0px;margin-top: 0px;'>"+value+"</p>";
   },
   CreateBPtag: function(value){
-    return "<p style='font-weight: bold;'>"+value+"</p>";
+    return "<p style='font-weight: bold;margin-bottom: 0px;margin-top: 0px;'>"+value+"</p>";
   }
 };
 

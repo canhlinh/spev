@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
-  "name": "VSdict",
+  "name": "VS dictionary",
   "short_name": "vsdict",
   "description": "Từ điển Anh Việt, Flashcard trên tới mới.",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "minimum_chrome_version": "38",
 
   "icons": {
@@ -27,9 +27,7 @@
       "js/constant.js",
       "js/script-content.js"
       ],
-    "css": ["css/content-styles.css"]
-	}],
-  "chrome_url_overrides" : {
-    "newtab": "note.html"
-  }
+    "css": ["css/content-styles.css"],
+    "run-at": "document_start"
+	}]
 }
