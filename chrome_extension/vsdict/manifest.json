@@ -3,7 +3,7 @@
   "name": "VS dictionary",
   "short_name": "vsdict",
   "description": "Từ điển Anh Việt, Flashcard trên tới mới.",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "minimum_chrome_version": "38",
 
   "icons": {

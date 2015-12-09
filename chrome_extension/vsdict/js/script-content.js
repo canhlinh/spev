@@ -31,8 +31,8 @@ ContentScript = {
     document.body.onmouseup = this.MouseUpHandler.bind(this);
     document.body.onmousedown = this.MouseDownHandler.bind(this);
     document.body.onmousewheel = this.MouseDownHandler.bind(this);
-    window.onfocus = this.PageActiveEventHandler;
-    window.onblur = this.PageDeactiveEventHandler;
+    window.onfocus = this.PageActiveEventHandler.bind(this);
+    window.onblur = this.PageDeactiveEventHandler.bind(this);
     var e = chrome.extension.getURL("");
     this.extension.id = /(\w{32})/.exec(e)[0];
     var t = window.document.createElement("meta");
@@ -52,13 +52,13 @@ ContentScript = {
     }
   },
   PageActiveEventHandler: function(){
-    if(ContentScript.extension.port === null)
-      ContentScript.TryConnectExtension();
+    if(this.extension.port === null || this.extension.port === undefined)
+      this.TryConnectExtension();
   },
   PageDeactiveEventHandler: function(){
-    if(ContentScript.extension.port !== null){
-      ContentScript.extension.port.disconnect();
-      ContentScript.extension.port = null;
+    if(this.extension.port !== null && this.extension.port !== undefined){
+      this.extension.port.disconnect();
+      this.extension.port = null;
     }
   },
   TryConnectExtension: function(){
@@ -69,8 +69,8 @@ ContentScript = {
         return false;
       }
       //console.log("connected to extension : "+this.extension.id);
-      this.extension.port.onMessage.addListener(this.ExtensionMessageHandler);
-      this.extension.port.onDisconnect.addListener(this.ExtensionDisconnectedHandler);
+      this.extension.port.onMessage.addListener(this.ExtensionMessageHandler.bind(this));
+      this.extension.port.onDisconnect.addListener(this.ExtensionDisconnectedHandler.bind(this));
       return true;
   },
   ExtensionMessageHandler: function(event){
@@ -79,7 +79,7 @@ ContentScript = {
         console.log(event.data);
         break;
       case WORD_TRANSLATED:
-        ContentScript.WordTranslatedHandler(event.data.result);
+        this.WordTranslatedHandler(event.data.result);
         break;
     }
   },
@@ -89,6 +89,8 @@ ContentScript = {
   },
   ExtensionDisconnectedHandler: function(){
     console.log("disconnected");
+    this.extension.id = null;
+    this.extension.port = null;
   },
   SendToExtension: function(message){
     if (this.extension.port !== null){
@@ -105,7 +107,11 @@ ContentScript = {
     event.preventDefault();
   },
   MouseDownHandler: function(event) {
-    this.ReleaseUI();
+    var right = false;
+    if(event.which === 3) {
+      right = true;
+    }
+    this.ReleaseUI(right);
     this.mousedownTime = new Date().getTime();
   },
   MouseClickHandler: function(event) {
@@ -113,15 +119,17 @@ ContentScript = {
     if(this.clickTimeout === 0 && (this.mouseupTime - this.mousedownTime < 1000))
       this.clickTimeout = setTimeout(this.ReleaseUI.bind(this), 200);
   },
-  ReleaseUI: function() {
-    if (window.getSelection) {
-    if (window.getSelection().empty) {  // Chrome
-      window.getSelection().empty();
-    } else if (window.getSelection().removeAllRanges) {  // Firefox
-      window.getSelection().removeAllRanges();
-    }
-    } else if (document.selection) {  // IE?
-      document.selection.empty();
+  ReleaseUI: function(isRightMouse) {
+    if(!isRightMouse) {
+      if (window.getSelection) {
+      if (window.getSelection().empty) {  // Chrome
+        window.getSelection().empty();
+      } else if (window.getSelection().removeAllRanges) {  // Firefox
+        window.getSelection().removeAllRanges();
+      }
+      } else if (document.selection) {  // IE?
+        document.selection.empty();
+      }
     }
     var div = document.getElementById(DIV_RS_UI);
     if(div !== null)
