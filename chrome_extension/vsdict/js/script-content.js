@@ -1,38 +1,42 @@
 function MouseDblPoint(x,y) {
   this.x = x;
   this.y = y;
+  this.setPoint = function(x, y) {
+    this.x = x;
+    this.y = y;
+  };
+  this.getMouseX = function() {
+    return this.x;
+  };
+  this.getMouseY = function() {
+    return (this.y + 12);
+  };
 }
 
-MouseDblPoint.prototype.setPoint = function(x,y){
-  this.x = x;
-  this.y = y;
-};
+function getBodyWidth() {
+  if (document.documentElement && document.documentElement.clientHeight) {
+    return document.documentElement.clientWidth;
+  }
 
-MouseDblPoint.prototype.getMouseX = function(){
-  return this.x;
-};
+  if (document.body) {
+    return document.body.clientWidth;
+  }
+}
 
-MouseDblPoint.prototype.getMouseY = function(){
-  return (this.y + 12);
-};
-
-if( typeof(ContentScript) === undefined) var ContentScript = {};
-
-ContentScript = {
-  Init: function(){
+var ContentScript = {
+  Init: function() {
     this.clickTimeout = 0;
     this.mousedownTime = 0;
     this.mouseupTime = 0;
     this.extension = {};
+    this.extension.port = null;
     this.word = null;
     this.mousePoint = new MouseDblPoint(0,0);
-    //document.body.onclick = this.MouseClickHandler.bind(this);
     document.body.ondblclick = this.MouseDbclickHandler.bind(this);
     document.body.onmouseup = this.MouseUpHandler.bind(this);
     document.body.onmousedown = this.MouseDownHandler.bind(this);
-    document.body.onmousewheel = this.MouseDownHandler.bind(this);
-    window.onfocus = this.PageActiveEventHandler;
-    window.onblur = this.PageDeactiveEventHandler;
+    document.body.onmousewheel = this.MouseWheelHandler.bind(this);
+    document.addEventListener("visibilitychange", this.TabFocusEventHandler.bind(this));
     var e = chrome.extension.getURL("");
     this.extension.id = /(\w{32})/.exec(e)[0];
     var t = window.document.createElement("meta");
@@ -42,56 +46,66 @@ ContentScript = {
     this.div = document.createElement("div");
     this.div.id = DIV_RS_UI;
     this.div.className = DIV_RS_CSS;
-    this.div.addEventListener("DOMNodeInserted", this.DivloadedHandler.bind(this));
-    this.TryConnectExtension();
+    this.div.addEventListener("DOMNodeInserted", this.DivLoadedHandler.bind(this));
+    if(!document.hidden)
+      this.TryConnectExtension();
   },
-  DivloadedHandler: function(event) {
-    var w = this.div.offsetWidth;
-    if(w !== 0) {
-      this.div.style.left = (this.mousePoint.getMouseX() - (w/2)) + "px";
+  DivLoadedHandler: function(event) {
+    var divOffset = this.div.offsetWidth / 2;
+    var curMouse = this.mousePoint.getMouseX();
+    var bodyWidth = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
+    if(divOffset !== 0) {
+      var divPoint = curMouse - divOffset;
+      if(divPoint < 0)
+        divPoint = 0;
+      else if(curMouse + divOffset > bodyWidth)
+        divPoint = bodyWidth - divOffset;
+      this.div.style.left = divPoint + "px";
     }
   },
-  PageActiveEventHandler: function(){
-    if(ContentScript.extension.port === null)
-      ContentScript.TryConnectExtension();
-  },
-  PageDeactiveEventHandler: function(){
-    if(ContentScript.extension.port !== null){
-      ContentScript.extension.port.disconnect();
-      ContentScript.extension.port = null;
+  TabFocusEventHandler: function(event) {
+    //console.log(document.hidden + " type " + typeof(document.hidden));
+    if(document.hidden) {
+      if(this.extension.port !== null) {
+        this.extension.port.disconnect();
+        this.extension.port = null;
+      }
+    } else {
+        this.TryConnectExtension();
     }
   },
-  TryConnectExtension: function(){
+  TryConnectExtension: function() {
       this.extension.port = chrome.runtime.connect(this.extension.id);
-      if (this.extension.port === null){
+      if (this.extension.port === null) {
         this.extension.id = null;
         this.extension.port = null;
         return false;
       }
-      //console.log("connected to extension : "+this.extension.id);
-      this.extension.port.onMessage.addListener(this.ExtensionMessageHandler);
-      this.extension.port.onDisconnect.addListener(this.ExtensionDisconnectedHandler);
+      this.extension.port.onMessage.addListener(this.ExtensionMessageHandler.bind(this));
+      this.extension.port.onDisconnect.addListener(this.ExtensionDisconnectedHandler.bind(this));
       return true;
   },
-  ExtensionMessageHandler: function(event){
-    switch(event.name){
+  ExtensionMessageHandler: function(event) {
+    switch(event.name) {
       case CONNECTION_CHANGE:
         console.log(event.data);
         break;
       case WORD_TRANSLATED:
-        ContentScript.WordTranslatedHandler(event.data.result);
+        this.WordTranslatedHandler(event.data.result);
         break;
     }
   },
-  WordTranslatedHandler: function(result){
+  WordTranslatedHandler: function(result) {
     var dContent = this.GetDivFromResult(result);
     this.ShowDivTranslateUI(dContent);
   },
-  ExtensionDisconnectedHandler: function(){
+  ExtensionDisconnectedHandler: function() {
     console.log("disconnected");
+    this.extension.id = null;
+    this.extension.port = null;
   },
-  SendToExtension: function(message){
-    if (this.extension.port !== null){
+  SendToExtension: function(message) {
+    if (this.extension.port !== null) {
         this.extension.port.postMessage(message);
     } else{
         console.log("Extension is not connected. Message cannot be sent.");
@@ -102,32 +116,40 @@ ContentScript = {
     if(this.mouseupTime - this.mousedownTime > 500) {
       this.DetectTranslateContent(event);
     }
-    event.preventDefault();
   },
   MouseDownHandler: function(event) {
-    this.ReleaseUI();
+    var right = false;
+    if(event.which === 3) {
+      right = true;
+    }
+    this.ReleaseUI(right);
     this.mousedownTime = new Date().getTime();
+  },
+  MouseWheelHandler: function(event) {
+    this.ReleaseUI(true);
   },
   MouseClickHandler: function(event) {
     //@FIXME: I'm checking click event
     if(this.clickTimeout === 0 && (this.mouseupTime - this.mousedownTime < 1000))
       this.clickTimeout = setTimeout(this.ReleaseUI.bind(this), 200);
   },
-  ReleaseUI: function() {
-    if (window.getSelection) {
-    if (window.getSelection().empty) {  // Chrome
-      window.getSelection().empty();
-    } else if (window.getSelection().removeAllRanges) {  // Firefox
-      window.getSelection().removeAllRanges();
-    }
-    } else if (document.selection) {  // IE?
-      document.selection.empty();
+  ReleaseUI: function(cleanSelected) {
+    if(!cleanSelected) {
+      if (window.getSelection) {
+      if (window.getSelection().empty) {  // Chrome
+        window.getSelection().empty();
+      } else if (window.getSelection().removeAllRanges) {  // Firefox
+        window.getSelection().removeAllRanges();
+      }
+      } else if (document.selection) {  // IE?
+        document.selection.empty();
+      }
     }
     var div = document.getElementById(DIV_RS_UI);
     if(div !== null)
       document.body.removeChild(div);
   },
-  MouseDbclickHandler: function(event){
+  MouseDbclickHandler: function(event) {
     this.DetectTranslateContent(event);
   },
   DetectTranslateContent: function(event) {
@@ -144,7 +166,7 @@ ContentScript = {
       this.SendToExtension(message);
     }
   },
-  GetSelectedText: function(){
+  GetSelectedText: function() {
     if(window.getSelection)
         return window.getSelection().toString();
     else if(document.getSelection)
@@ -153,13 +175,13 @@ ContentScript = {
         return document.selection.createRange().text;
     return "";
   },
-  ShowDivTranslateUI: function(dContent){
+  ShowDivTranslateUI: function(dContent) {
     this.div.style.top = this.mousePoint.getMouseY() + "px";
     this.div.style.left = this.mousePoint.getMouseX() + "px";
     this.div.innerHTML = dContent;
     document.body.appendChild(this.div);
   },
-  GetDivFromResult: function(result){
+  GetDivFromResult: function(result) {
     var type = result.type;
     var phonetic = result.phonetic;
     var meanings = result.meanings;
@@ -187,7 +209,7 @@ ContentScript = {
     }
     return div;
   },
-  CreatePtag: function(value, px){
+  CreatePtag: function(value, px) {
     return "<p style='margin-left: "+ px + "px;margin-bottom: 0px;margin-top: 0px;'>"+value+"</p>";
   },
   CreateBPtag: function(value){
@@ -195,8 +217,6 @@ ContentScript = {
   }
 };
 
-if(!document.head.querySelector("meta[name="+HEADER_META+"]")){
-  if (chrome.extension) {
+if(!document.head.querySelector("meta[name="+HEADER_META+"]")) {
     ContentScript.Init();
-  }
 }
