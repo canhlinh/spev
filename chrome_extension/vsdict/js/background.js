@@ -44,13 +44,15 @@ function EnViExtension(){
     var xhr = new XMLHttpRequest();
     xhr.responseType = "json";
     xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            var result = {};
-            result = xhr.response;
-            result.type = VSAPI;
-            self.ResponseWordTranslateHandler(word, result);
-        } else {
-          self.GetWordFromGoogle(word);
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                var result = {};
+                result = xhr.response;
+                result.type = VSAPI;
+                self.ResponseWordTranslateHandler(word, result);
+            } else {
+              self.GetWordFromGoogle(word);
+            }
         }
     };
     xhr.open("GET", VNSTREAM_API + "?word="+word);
