@@ -5,6 +5,6 @@ const HEADER_META = "vnstreamg-com-chrome-extension";
 const DIV_RS_UI = "vsdict_div_extension";
 const DIV_RS_CSS = "vsdict_div";
 const GOOGLE_API = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=";
-const VNSTREAM_API = "http://vnstreaming.com/api/dictionary";
+const VNSTREAM_API = "http://vnstreaming.com:8080/api/dictionary";
 const VSAPI =  "VNSTREAMING_COM";
 const GAPI =  "GOOGLE_COM";

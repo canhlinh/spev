@@ -1,7 +1,7 @@
 function EnViExtension(){
   var self = this;
   self.contentScriptPort = null;
-  
+
   this.PortConnectedHandler = function(port){
   	self.contentScriptPort = port;
   	port.onDisconnect.addListener(function (){
@@ -13,14 +13,14 @@ function EnViExtension(){
     message.data = "Hey boss, TS ready";
     self.SendMessageToContent(message);
   };
-  
+
   this.SendMessageToContent = function(message){
   	if (self.contentScriptPort === null){
   	  return;
   	}
   	self.contentScriptPort.postMessage(message);
   };
-  
+
   this.MessageContentHandler = function(event){
     console.log(event);
     var mName = event.name;
@@ -30,7 +30,7 @@ function EnViExtension(){
         break;
     }
   };
-  
+
   this.ResponseWordTranslateHandler = function(word, result) {
     var message = {};
     message.name = WORD_TRANSLATED;
@@ -39,7 +39,7 @@ function EnViExtension(){
     message.data.word = word;
     this.SendMessageToContent(message);
   };
-  
+
   this.GetWordFromVnStreaming = function(word){
     var xhr = new XMLHttpRequest();
     xhr.responseType = "json";
@@ -49,19 +49,18 @@ function EnViExtension(){
         {
           if(xhr.response !== null){
             var result = {};
-            result = xhr.response.result;
+            result = xhr.response;
             result.type = VSAPI;
             self.ResponseWordTranslateHandler(word, result);
           }else {
             self.GetWordFromGoogle(word);
           }
         }
-    }; 
-    xhr.open("POST", VNSTREAM_API);
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhr.send("word="+word);
+    };
+    xhr.open("GET", VNSTREAM_API + "?word="+word);
+    xhr.send(null);
   };
-  
+
   this.GetWordFromGoogle = function(word){
     var xhr = new XMLHttpRequest();
     xhr.responseType = "text";
@@ -79,11 +78,11 @@ function EnViExtension(){
             self.ResponseWordTranslateHandler(word, result);
           }
         }
-    }; 
+    };
     xhr.open("GET", GOOGLE_API+encodeURI(word));
     xhr.send();
   };
-  
+
   chrome.runtime.onConnect.addListener(this.PortConnectedHandler);
   chrome.runtime.onConnectExternal.addListener(this.PortConnectedHandler);
 }
