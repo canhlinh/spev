@@ -15,3 +15,6 @@ https://github.com/canhlinh/ev-dict-server
 https://github.com/canhlinh/spev/wiki   
 ### Cài đặt trên Chrome.
 https://chrome.google.com/webstore/detail/vs-dictionary/lkciecfdkpichoanklcaniedikblfbkk
+
+### Server Side :
+https://github.com/canhlinh/ev-dict-server
