@@ -9,12 +9,10 @@ Chrome Extension dictionary.
 * Sử dụng database của Server mặc định sẽ trả về - phiên âm và phiên dịch.
 * Sử dụng google translate nếu không tìm thấy kết quả trên google.
 
-#### Server side
+#### Server side source code
 https://github.com/canhlinh/ev-dict-server   
 ### Mô hình
 https://github.com/canhlinh/spev/wiki   
 ### Cài đặt trên Chrome.
 https://chrome.google.com/webstore/detail/vs-dictionary/lkciecfdkpichoanklcaniedikblfbkk
 
-### Server Side :
-https://github.com/canhlinh/ev-dict-server
