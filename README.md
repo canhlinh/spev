@@ -12,4 +12,6 @@ Chrome Extension dictionary.
 #### Server side
 https://github.com/canhlinh/ev-dict-server   
 ### Mô hình
-https://github.com/canhlinh/spev/wiki
+https://github.com/canhlinh/spev/wiki   
+### Cài đặt trên Chrome.
+https://chrome.google.com/webstore/detail/vs-dictionary/lkciecfdkpichoanklcaniedikblfbkk
