@@ -1,3 +1,0 @@
-dataSource.url = "jdbc:mysql://localhost/evdict"
-dataSource.username = "root"
-dataSource.password = "wBeBn1ayL13PqXd2euyh"

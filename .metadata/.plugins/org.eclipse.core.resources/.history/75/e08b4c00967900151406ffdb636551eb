@@ -1,7 +1,0 @@
-package vndict
-
-class Dict_en_vi {
-
-    static constraints = {
-    }
-}

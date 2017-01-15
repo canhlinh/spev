@@ -1,7 +1,0 @@
-package com.vnstreaming
-
-class DictEnVi {
-	String word;
-    static constraints = {
-    }
-}
