@@ -3,9 +3,8 @@
   "name": "VS dictionary",
   "short_name": "vsdict",
   "description": "Từ điển Anh Việt, Flashcard trên tới mới.",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "minimum_chrome_version": "38",
-
   "icons": {
     "16": "assets/icon_16.png",
     "32": "assets/icon_32.png",
@@ -15,19 +14,25 @@
     "default_icon": "assets/icon_32.png",
     "default_popup": "option.html"
   },
-	"background": {
-	  "scripts": [
-	    "js/constant.js",
-	    "js/background.js"
-    ]
-	},
-	"content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": [
+  "background": {
+    "scripts": [
       "js/constant.js",
-      "js/script-content.js"
+      "js/background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
       ],
-    "css": ["css/content-styles.css"],
-    "run-at": "document_start"
-	}]
+      "js": [
+        "js/constant.js",
+        "js/script-content.js"
+      ],
+      "css": [
+        "css/content-styles.css"
+      ],
+      "run-at": "document_start"
+    }
+  ]
 }
